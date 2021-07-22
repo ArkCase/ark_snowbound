@@ -1,0 +1,6 @@
+*.orig
+.*.swp
+*.zip
+*.tgz
+*.tar.gz
+artifacts/
