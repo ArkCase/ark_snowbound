@@ -49,7 +49,9 @@ RUN     set -eu; \
         rm -rf tomcat/webapps/* tomcat/temp/* tomcat/logs; \
         useradd --system --user-group --no-create-home --home-dir /app/home tomcat; \
         mkdir /app/home; \
-        chown -R tomcat:tomcat "$TOMCAT" /app/home
+        chown -R tomcat:tomcat "$TOMCAT" /app/home; \
+        rpm --erase --nodeps yum; \
+        rm -rf /var/cache/yum
 
 EXPOSE 8080
 USER tomcat
