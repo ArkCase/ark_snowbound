@@ -21,7 +21,7 @@ ENV SNOWBOUND="VirtualViewerJavaHTML5-$SNOWBOUND_VERSION" \
     TOMCAT_TARBALL="apache-tomcat-${TOMCAT_VERSION}.tar.gz" \
     TOMCAT_TARBALL_SHA512="06cd51abbeebba9385f594ed092bd30e510b6314c90c421f4be5d8bec596c6a177785efc2ce27363813f6822af89fc88a2072d7b051960e5387130faf69c447b" \
 # Environment variables: Java & Tomcat stuff
-    JAVA_HOME=/usr/lib/jvm/jre-11-openjdk \
+    JRE_HOME=/usr/lib/jvm/jre-11-openjdk \
     CATALINA_HOME=/app/tomcat \
     CATALINA_PID=/app/tomcat/temp/tomcat.pid \
     CATALINA_OUT=/dev/stdout \
@@ -48,8 +48,8 @@ RUN     set -eu; \
         ln -s "$TOMCAT" tomcat; \
         rm -rf tomcat/webapps/* tomcat/temp/* tomcat/logs; \
         useradd --system --user-group --no-create-home --home-dir /app/home tomcat; \
-        chown -R tomcat:tomcat "$TOMCAT"; \
-        ls -lA /app/tomcat/bin
+        mkdir /app/home; \
+        chown -R tomcat:tomcat "$TOMCAT" /app/home
 
 EXPOSE 8080
 USER tomcat
