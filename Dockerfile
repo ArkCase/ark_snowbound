@@ -32,24 +32,29 @@ ENV SNOWBOUND="VirtualViewerJavaHTML5-$SNOWBOUND_VERSION" \
 WORKDIR /app
 COPY "artifacts/${SNOWBOUND_WAR}" \
     "artifacts/${TOMCAT_TARBALL}" \
+    VirtualViewerJavaHTML5.xml \
     ./
 
 RUN     set -eu; \
-        checksum=$(sha512sum "${TOMCAT_TARBALL}" | awk '{ print $1 }'); \
+        checksum=$(sha512sum "$TOMCAT_TARBALL" | awk '{ print $1 }'); \
         if [ $checksum != $TOMCAT_TARBALL_SHA512 ]; then \
             echo "Unexpected SHA512 checkum for Tomcat tarball; possible man-in-the-middle attack"; \
             exit 1; \
         fi; \
-        yum -y update; \
-        yum -y install java-11-openjdk; \
-        yum clean all; \
-        tar xf "${TOMCAT_TARBALL}"; \
-        rm "${TOMCAT_TARBALL}"; \
+# XXX        yum --assumeyes update; \
+        yum --assumeyes install java-11-openjdk unzip; \
+        yum --assumeyes clean all; \
+        tar xf "$TOMCAT_TARBALL"; \
+        rm "$TOMCAT_TARBALL"; \
         ln -s "$TOMCAT" tomcat; \
         rm -rf tomcat/webapps/* tomcat/temp/* tomcat/logs; \
         useradd --system --user-group --no-create-home --home-dir /app/home tomcat; \
-        mkdir /app/home; \
-        chown -R tomcat:tomcat "$TOMCAT" /app/home; \
+        mkdir -p home tomcat/webapps/VirtualViewerJavaHTML5 tomcat/conf/Catalina/localhost; \
+        unzip -d tomcat/webapps/VirtualViewerJavaHTML5 "$SNOWBOUND_WAR"; \
+        rm "$SNOWBOUND_WAR"; \
+        cp VirtualViewerJavaHTML5.xml tomcat/conf/Catalina/localhost/; \
+        chown -R tomcat:tomcat "$TOMCAT" home; \
+        yum --assumeyes erase unzip; \
         rpm --erase --nodeps yum; \
         rm -rf /var/cache/yum
 
