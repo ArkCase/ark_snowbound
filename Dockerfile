@@ -26,12 +26,14 @@ ENV SNOWBOUND="VirtualViewerJavaHTML5-$SNOWBOUND_VERSION" \
     CATALINA_PID=/app/tomcat/temp/tomcat.pid \
     CATALINA_OUT=/dev/stdout \
     CATALINA_TMPDIR=/app/tomcat/temp \
+    JAVA_FONTS=/app/fonts/.fonts/ \
 # Environment variables: System stuff
     PATH="/app/tomcat/bin:$PATH"
 
 WORKDIR /app
 COPY "artifacts/${SNOWBOUND_WAR}" \
     "artifacts/${TOMCAT_TARBALL}" \
+    artifacts/fonts.tar.gz \
     VirtualViewerJavaHTML5.xml \
     ./
 
@@ -41,7 +43,7 @@ RUN     set -eu; \
             echo "Unexpected SHA512 checkum for Tomcat tarball; possible man-in-the-middle attack"; \
             exit 1; \
         fi; \
-# XXX        yum --assumeyes update; \
+        yum --assumeyes update; \
         yum --assumeyes install java-11-openjdk unzip; \
         yum --assumeyes clean all; \
         tar xf "$TOMCAT_TARBALL"; \
@@ -49,15 +51,25 @@ RUN     set -eu; \
         ln -s "$TOMCAT" tomcat; \
         rm -rf tomcat/webapps/* tomcat/temp/* tomcat/logs; \
         useradd --system --user-group --no-create-home --home-dir /app/home tomcat; \
-        mkdir -p home tomcat/webapps/VirtualViewerJavaHTML5 tomcat/conf/Catalina/localhost; \
+        mkdir -p home fonts tomcat/webapps/VirtualViewerJavaHTML5 tomcat/conf/Catalina/localhost snowbound-docs; \
+        ln -s /app/snowbound-docs /app/home/.snowbound-docs; \
         unzip -d tomcat/webapps/VirtualViewerJavaHTML5 "$SNOWBOUND_WAR"; \
         rm "$SNOWBOUND_WAR"; \
-        cp VirtualViewerJavaHTML5.xml tomcat/conf/Catalina/localhost/; \
-        chown -R tomcat:tomcat "$TOMCAT" home; \
+        chmod 644 VirtualViewerJavaHTML5.xml; \
+        mv VirtualViewerJavaHTML5.xml tomcat/conf/Catalina/localhost/; \
+        tar xf fonts.tar.gz -C fonts; \
+        rm fonts.tar.gz; \
+        cd fonts; \
+        fc-cache -f -v; \
+        cd ..; \
+        chown -R tomcat:tomcat "$TOMCAT" home snowbound-docs; \
         yum --assumeyes erase unzip; \
         rpm --erase --nodeps yum; \
         rm -rf /var/cache/yum
 
+VOLUME /app/snowbound-docs
+
 EXPOSE 8080
 USER tomcat
-CMD ["/app/tomcat/bin/catalina.sh", "run"]
+ENTRYPOINT ["/app/tomcat/bin/catalina.sh"]
+CMD ["run"]
