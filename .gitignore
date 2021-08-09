@@ -2,5 +2,4 @@
 .*.swp
 *.zip
 *.tgz
-*.tar.gz
 artifacts/
