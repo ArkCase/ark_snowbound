@@ -48,16 +48,17 @@ COPY files/fonts.tar.gz \
     files/startup.sh \
     files/VirtualViewerJavaHTML5.xml ./
 
-RUN     set -eu; \
+SHELL ["/bin/bash", "-c"]
+RUN     set -eu -o pipefail; \
         checksum=$(sha512sum "$TOMCAT_TARBALL" | awk '{ print $1 }'); \
-        if [ $checksum != $TOMCAT_TARBALL_SHA512 ]; then \
+        if [ $checksum != "$TOMCAT_TARBALL_SHA512" ]; then \
             echo "Unexpected SHA512 checkum for Tomcat tarball; possible man-in-the-middle attack"; \
             exit 1; \
         fi; \
         yum --assumeyes update; \
         yum --assumeyes install java-11-openjdk unzip python3; \
         yum --assumeyes clean all; \
-        pip3 install jinja2-cli; \
+        pip3 install --no-cache-dir jinja2-cli; \
         # Unpack Tomcat into the `tomcat` directory
         tar xf "$TOMCAT_TARBALL"; \
         mv "$TOMCAT" tomcat; \
