@@ -27,3 +27,7 @@ ignored:
   # Ignoring: SC2086 info: Double quote to prevent globbing and word splitting.
   # Rationale: I am doing that, but for some reason hadolint can't see it
   - SC2086
+  # Ignoring: DL3020 error: Use COPY instead of ADD for files and folders
+  # Rationale: This is a non-sensical warning, COPY can't be used for source
+  # files that are not local.
+  - DL3020

@@ -38,9 +38,7 @@ ENV JRE_HOME=/usr/lib/jvm/jre-11-openjdk \
     PATH="/app/tomcat/bin:$PATH"
 
 WORKDIR /app
-# ADD "${SNOWBOUND_URL}" "${TOMCAT_URL}" ./
-# XXX
-COPY ${SNOWBOUND_WAR} ${TOMCAT_TARBALL} ./
+ADD "${SNOWBOUND_URL}" "${TOMCAT_URL}" ./
 
 COPY files/fonts.tar.gz \
     files/server.xml.j2 \
