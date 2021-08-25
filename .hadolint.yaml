@@ -1,0 +1,33 @@
+ignored:
+  # Ignoring: DL3048 style: Invalid label key.
+  # Rationale: I don't understand why hadolint says there is a problem with our
+  # LABEL names...
+  - DL3048
+  # Ignoring: DL3010 info: Use ADD for extracting archives into an image
+  # Rationale: We don't want to extract `fonts.tar.gz`
+  - DL3010
+  # Ignoring: DL3003 warning: Use WORKDIR to switch to a directory
+  # Rationale: The RUN uses `cd` only for running `fc-cache`, not worth having
+  # multiple RUNs and WORKDIRs, that will make readability worse.
+  - DL3003
+  # Ignoring: DL3031: error: Do not use yum update.
+  # This is non-sense, we do want to always run `yum update`, see
+  # [this](https://pythonspeed.com/articles/security-updates-in-docker/)
+  - DL3031
+  # Ignoring: DL3013 warning: Pin versions in pip.
+  # Ignoring: DL3033 warning: Specify version with `yum install -y <package>-<version>`
+  # Rationale: Hardcoding versions and keeping track of them is a lot of work
+  # and in most cases not worth the efforts. Let's apply this only for packages
+  # where a specific version is indeed required.
+  - DL3013
+  - DL3033
+  # Ignoring: DL4006 warning: Set the SHELL option -o pipefail before RUN...
+  # Rationale: I am doing that, but for some reason hadolint can't see it
+  - DL4006
+  # Ignoring: SC2086 info: Double quote to prevent globbing and word splitting.
+  # Rationale: I am doing that, but for some reason hadolint can't see it
+  - SC2086
+  # Ignoring: DL3020 error: Use COPY instead of ADD for files and folders
+  # Rationale: This is a non-sensical warning, COPY can't be used for source
+  # files that are not local.
+  - DL3020

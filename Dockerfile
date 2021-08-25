@@ -5,9 +5,9 @@ FROM 345280441424.dkr.ecr.ap-south-1.amazonaws.com/base_centos:7-20210630
 
 LABEL ORG="Armedia LLC"
 LABEL APP="Snowbound"
-LABEL VERSION="1.0"
+LABEL VERSION="1.1"
 LABEL IMAGE_SOURCE="https://github.com/ArkCase/ark_snowbound"
-LABEL MAINTAINER="Armedia LLC"
+LABEL MAINTAINER="Armedia DevOps Team <devops@armedia.com>"
 
 # Variables: Versions
 ARG SNOWBOUND_ARKCASE_VERSION="2021.02.04"
@@ -33,47 +33,71 @@ ENV JRE_HOME=/usr/lib/jvm/jre-11-openjdk \
     CATALINA_OUT=/dev/stdout \
     CATALINA_TMPDIR=/app/tomcat/temp \
     JAVA_FONTS=/app/fonts/.fonts/ \
+    TOMCAT_HTTP_PORT=8080 \
 # Environment variables: System stuff
     PATH="/app/tomcat/bin:$PATH"
 
 WORKDIR /app
 ADD "${SNOWBOUND_URL}" "${TOMCAT_URL}" ./
 
-COPY fonts.tar.gz VirtualViewerJavaHTML5.xml ./
+COPY files/fonts.tar.gz \
+    files/server.xml.j2 \
+    files/web.xml \
+    files/startup.sh \
+    files/VirtualViewerJavaHTML5.xml ./
 
-RUN     set -eu; \
+SHELL ["/bin/bash", "-c"]
+RUN     set -eu -o pipefail; \
         checksum=$(sha512sum "$TOMCAT_TARBALL" | awk '{ print $1 }'); \
-        if [ $checksum != $TOMCAT_TARBALL_SHA512 ]; then \
+        if [ $checksum != "$TOMCAT_TARBALL_SHA512" ]; then \
             echo "Unexpected SHA512 checkum for Tomcat tarball; possible man-in-the-middle attack"; \
             exit 1; \
         fi; \
         yum --assumeyes update; \
-        yum --assumeyes install java-11-openjdk unzip; \
+        yum --assumeyes install java-11-openjdk unzip python3; \
         yum --assumeyes clean all; \
+        pip3 install --no-cache-dir jinja2-cli; \
+        # Unpack Tomcat into the `tomcat` directory
         tar xf "$TOMCAT_TARBALL"; \
+        mv "$TOMCAT" tomcat; \
         rm "$TOMCAT_TARBALL"; \
-        ln -s "$TOMCAT" tomcat; \
-        rm -rf tomcat/webapps/* tomcat/temp/* tomcat/logs; \
+        mv -f web.xml tomcat/conf/; \
+        # `/bin/sh` removes env vars it doesn't support (i.e. the ones with periods in their names)
+        # More information [here](https://github.com/docker-library/tomcat/issues/77)
+        # Use `/bin/bash` instead
+        find tomcat/bin/ -name '*.sh' -exec sed -ri 's|^#!/bin/sh$|#!/bin/bash|' '{}' +; \
+        # Fix permissions (especially when running as non-root)
+        # More information [here](https://github.com/docker-library/tomcat/issues/35)
+        chmod -R +rX . ; \
+        chmod 777 tomcat/work; \
+        chmod u+x tomcat/bin/*.sh; \
+        # Removal of default/unwanted Applications
+        rm -rf tomcat/webapps/* tomcat/temp/* tomcat/logs tomcat/bin/*.bat; \
+        # Create `tomcat` user
         useradd --system --user-group --no-create-home --home-dir /app/home tomcat; \
-        mkdir -p home fonts tomcat/webapps/VirtualViewerJavaHTML5 tomcat/conf/Catalina/localhost snowbound-docs; \
-        ln -s /app/snowbound-docs /app/home/.snowbound-docs; \
+        # Install Snowbound
+        mkdir -p home/.snowbound-docs fonts tomcat/webapps/VirtualViewerJavaHTML5 tomcat/conf/Catalina/localhost; \
         unzip -d tomcat/webapps/VirtualViewerJavaHTML5 "$SNOWBOUND_WAR"; \
         rm "$SNOWBOUND_WAR"; \
+        # Install Snowbound configuration file
         chmod 644 VirtualViewerJavaHTML5.xml; \
         mv VirtualViewerJavaHTML5.xml tomcat/conf/Catalina/localhost/; \
+        # Setup fonts
         tar xf fonts.tar.gz -C fonts; \
         rm fonts.tar.gz; \
         cd fonts; \
         fc-cache -f -v; \
         cd ..; \
-        chown -R tomcat:tomcat "$TOMCAT" home snowbound-docs; \
+        # Fix permissions
+        chown -R tomcat:tomcat tomcat home; \
+        # Remove unwanted packages, including `yum` itself
         yum --assumeyes erase unzip; \
-        rpm --erase --nodeps yum; \
+        rpm --erase --nodeps yum yum-plugin-fastestmirror yum-plugin-ovl yum-utils; \
         rm -rf /var/cache/yum
 
-VOLUME /app/snowbound-docs
+VOLUME /app/home/.snowbound-docs
 
 EXPOSE 8080
 USER tomcat
-ENTRYPOINT ["/app/tomcat/bin/catalina.sh"]
+ENTRYPOINT ["/app/startup.sh"]
 CMD ["run"]

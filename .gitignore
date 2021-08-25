@@ -2,4 +2,6 @@
 .*.swp
 *.zip
 *.tgz
+*.tar.gz
+*.war
 artifacts/
