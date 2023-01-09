@@ -1,7 +1,19 @@
-# NB: Our `base_centos` image is a pure copy of the `centos` image available on
-#     Docker hub. More information available
-#     [here](https://arkcase.atlassian.net/wiki/spaces/AANTA/pages/1558446081/Process+for+updating+our+base+image+base+centos).
-FROM 345280441424.dkr.ecr.ap-south-1.amazonaws.com/base_centos:7-20210630
+###########################################################################################################
+#
+# How to build:
+#
+# docker build -t 345280441424.dkr.ecr.ap-south-1.amazonaws.com/ark_snowbound:latest .
+# docker push 345280441424.dkr.ecr.ap-south-1.amazonaws.com/ark_snowbound:latest
+#
+# How to run: (Helm)
+#
+# helm repo add arkcase https://arkcase.github.io/ark_snowbound/
+# helm install ark-snowbound arkcase/ark-snowbound
+# helm uninstall ark-snowbound
+#
+###########################################################################################################
+
+FROM 345280441424.dkr.ecr.ap-south-1.amazonaws.com/ark_base:latest
 
 LABEL ORG="Armedia LLC"
 LABEL APP="Snowbound"
@@ -92,7 +104,7 @@ RUN     set -eu -o pipefail; \
         chown -R tomcat:tomcat tomcat home; \
         # Remove unwanted packages, including `yum` itself
         yum --assumeyes erase unzip; \
-        rpm --erase --nodeps yum yum-plugin-fastestmirror yum-plugin-ovl yum-utils; \
+        #rpm --erase --nodeps yum yum-plugin-fastestmirror yum-plugin-ovl yum-utils; \
         rm -rf /var/cache/yum
 
 VOLUME /app/home/.snowbound-docs
