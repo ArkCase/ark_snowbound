@@ -2,8 +2,8 @@
 #
 # How to build:
 #
-# docker build -t 345280441424.dkr.ecr.ap-south-1.amazonaws.com/ark_snowbound:latest .
-# docker push 345280441424.dkr.ecr.ap-south-1.amazonaws.com/ark_snowbound:latest
+# docker build -t ${BASE_REGISTRY}/arkcase/snowbound:latest .
+# docker push ${BASE_REGISTRY}/arkcase/snowbound:latest
 #
 # How to run: (Helm)
 #
@@ -13,19 +13,18 @@
 #
 ###########################################################################################################
 
-FROM 345280441424.dkr.ecr.ap-south-1.amazonaws.com/ark_base:latest
+ARG BASE_REGISTRY
+ARG BASE_REPO="arkcase/base"
+ARG BASE_TAG="8.7.0"
 
-LABEL ORG="Armedia LLC"
-LABEL APP="Snowbound"
-LABEL VERSION="1.1"
-LABEL IMAGE_SOURCE="https://github.com/ArkCase/ark_snowbound"
-LABEL MAINTAINER="Armedia DevOps Team <devops@armedia.com>"
+FROM "${BASE_REGISTRY}/${BASE_REPO}:${BASE_TAG}"
 
 # Variables: Versions
-ARG SNOWBOUND_ARKCASE_VERSION="2021.02.04"
-ARG SNOWBOUND_VERSION="5.6.2-$SNOWBOUND_ARKCASE_VERSION"
+ARG SNOWBOUND_ARKCASE_VERSION="2021.03"
+ARG SNOWBOUND_VERSION="5.6.2-${SNOWBOUND_ARKCASE_VERSION}"
 ARG TOMCAT_VERSION="9.0.50"
 ARG TOMCAT_MAJOR_VERSION="9"
+ARG VER="${SNOWBOUND_VERSION}"
 
 # Variables: Tarball stuff
 ARG SNOWBOUND="VirtualViewerJavaHTML5-${SNOWBOUND_VERSION}"
@@ -37,6 +36,12 @@ ARG TOMCAT_TARBALL_SHA512="06cd51abbeebba9385f594ed092bd30e510b6314c90c421f4be5d
 # Variables: Download URLs
 ARG SNOWBOUND_URL="https://github.com/ArkCase/arkcase-dependencies/releases/download/${SNOWBOUND_ARKCASE_VERSION}/${SNOWBOUND_WAR}"
 ARG TOMCAT_URL="https://archive.apache.org/dist/tomcat/tomcat-${TOMCAT_MAJOR_VERSION}/v${TOMCAT_VERSION}/bin/${TOMCAT_TARBALL}"
+
+LABEL ORG="Armedia LLC"
+LABEL APP="Snowbound"
+LABEL VERSION="${SNOWBOUND_VERSION}"
+LABEL IMAGE_SOURCE="https://github.com/ArkCase/ark_snowbound"
+LABEL MAINTAINER="Armedia DevOps Team <devops@armedia.com>"
 
 # Environment variables: Java & Tomcat stuff
 ENV JRE_HOME=/usr/lib/jvm/jre-11-openjdk \
