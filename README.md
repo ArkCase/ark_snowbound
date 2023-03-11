@@ -1,15 +1,15 @@
-# ark_snowbound
+# Snowbound for ArkCase
 
 ## How to build:
 
-docker build -t 345280441424.dkr.ecr.ap-south-1.amazonaws.com/ark_snowbound:latest .
+docker build -t ${BASE\_REGISTRY}/arkcase/snowbound:latest .
 
-docker push 345280441424.dkr.ecr.ap-south-1.amazonaws.com/ark_snowbound:latest
+docker push ${BASE\_REGISTRY}/arkcase/snowbound:latest
 
 ## How to run: (Helm)
 
-helm repo add arkcase https://arkcase.github.io/ark_snowbound/
+helm repo add arkcase https://arkcase.github.io/ark\_helm\_charts/
 
-helm install ark-snowbound arkcase/ark-snowbound
+helm install snowbound ark-snowbound
 
-helm uninstall ark-snowbound
+helm uninstall snowbound
