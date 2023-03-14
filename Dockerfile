@@ -102,7 +102,7 @@ RUN     set -eu -o pipefail; \
         rm -rf "${CATALINA_HOME}/webapps"/* "${CATALINA_HOME}"/{temp,work,logs} "${CATALINA_HOME}/bin"/*.bat; \
         # Create `tomcat` user
         groupadd --system --gid "${APP_GID}" "${APP_GROUP}"; \
-        useradd --system --group "${APP_GROUP}" --no-create-home --home-dir "${HOME_DIR}" --uid "${APP_UID}" "${APP_USER}"; \
+        useradd --system --no-user-group --gid "${APP_GROUP}" --no-create-home --home-dir "${HOME_DIR}" --uid "${APP_UID}" "${APP_USER}"; \
         # Install Snowbound
         mkdir -p "${HOME_DIR}/.snowbound-docs" fonts "${CATALINA_HOME}/webapps/VirtualViewerJavaHTML5" "${CATALINA_HOME}/conf/Catalina/localhost" "${TEMP_DIR}" "${WORK_DIR}" "${LOGS_DIR}"; \
         unzip -d "${CATALINA_HOME}/webapps/VirtualViewerJavaHTML5" "${SNOWBOUND_WAR}"; \
