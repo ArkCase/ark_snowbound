@@ -25,6 +25,15 @@ ARG SNOWBOUND_VERSION="5.6.2-${SNOWBOUND_ARKCASE_VERSION}"
 ARG TOMCAT_VERSION="9.0.50"
 ARG TOMCAT_MAJOR_VERSION="9"
 ARG VER="${SNOWBOUND_VERSION}"
+ARG BASE_DIR="/app"
+ARG APP_USER="snowbound"
+ARG APP_UID="1000"
+ARG APP_GROUP="${APP_USER}"
+ARG APP_GID="${APP_UID}"
+ARG HOME_DIR="${BASE_DIR}/${APP_USER}"
+ARG LOGS_DIR="${HOME_DIR}/logs"
+ARG TEMP_DIR="${HOME_DIR}/temp"
+ARG WORK_DIR="${HOME_DIR}/work"
 
 # Variables: Tarball stuff
 ARG SNOWBOUND="VirtualViewerJavaHTML5-${SNOWBOUND_VERSION}"
@@ -44,21 +53,26 @@ LABEL IMAGE_SOURCE="https://github.com/ArkCase/ark_snowbound"
 LABEL MAINTAINER="Armedia DevOps Team <devops@armedia.com>"
 
 # Environment variables: Java & Tomcat stuff
-ENV JRE_HOME=/usr/lib/jvm/jre-11-openjdk \
-    CATALINA_HOME=/app/tomcat \
-    CATALINA_PID=/app/tomcat/temp/tomcat.pid \
-    CATALINA_OUT=/dev/stdout \
-    CATALINA_TMPDIR=/app/tomcat/temp \
-    JAVA_FONTS=/app/fonts/.fonts/ \
-    TOMCAT_HTTP_PORT=8080 \
-# Environment variables: System stuff
-    PATH="/app/tomcat/bin:$PATH"
+ENV JRE_HOME="/usr/lib/jvm/jre-11-openjdk" \
+    CATALINA_HOME="/app/tomcat" \
+    CATALINA_PID="${CATALINA_HOME}/tomcat.pid" \
+    CATALINA_OUT="/dev/stdout" \
+    CATALINA_TMPDIR="${TEMP_DIR}" \
+    TEMP="${TEMP_DIR}" \
+    TMP="${TEMP_DIR}" \
+    JAVA_FONTS="/app/fonts/.fonts/" \
+    PATH="${CATALINA_HOME}/bin:$PATH" \
+    APP_USER="${APP_USER}" \
+    HOME_DIR="${HOME_DIR}" \
+    LOGS_DIR="${LOGS_DIR}" \
+    WORK_DIR="${WORK_DIR}" \
+    TEMP_DIR="${TEMP_DIR}"
 
 WORKDIR /app
 ADD "${SNOWBOUND_URL}" "${TOMCAT_URL}" ./
 
 COPY files/fonts.tar.gz \
-    files/server.xml.j2 \
+    files/server.xml \
     files/web.xml \
     files/startup.sh \
     files/VirtualViewerJavaHTML5.xml ./
@@ -70,35 +84,36 @@ RUN     set -eu -o pipefail; \
             echo "Unexpected SHA512 checkum for Tomcat tarball; possible man-in-the-middle attack"; \
             exit 1; \
         fi; \
-        yum --assumeyes update; \
-        yum --assumeyes install java-11-openjdk unzip python3; \
-        yum --assumeyes clean all; \
-        pip3 install --no-cache-dir jinja2-cli; \
+        yum -y update; \
+        yum -y install java-11-openjdk unzip; \
+        yum -y clean all; \
         # Unpack Tomcat into the `tomcat` directory
-        tar xf "$TOMCAT_TARBALL"; \
-        mv "$TOMCAT" tomcat; \
-        rm "$TOMCAT_TARBALL"; \
-        mv -f web.xml tomcat/conf/; \
+        tar xf "${TOMCAT_TARBALL}"; \
+        mv "${TOMCAT}" "${CATALINA_HOME}"; \
+        rm "${TOMCAT_TARBALL}"; \
+        mv -f logging.properties "${CATALINA_HOME}/conf"; \
+        mv -f server.xml "${CATALINA_HOME}/conf"; \
+        mv -f web.xml "${CATALINA_HOME}/conf"; \
         # `/bin/sh` removes env vars it doesn't support (i.e. the ones with periods in their names)
         # More information [here](https://github.com/docker-library/tomcat/issues/77)
         # Use `/bin/bash` instead
-        find tomcat/bin/ -name '*.sh' -exec sed -ri 's|^#!/bin/sh$|#!/bin/bash|' '{}' +; \
+        find "${CATALINA_HOME}/bin" -name '*.sh' -exec sed -ri 's|^#!/bin/sh$|#!/bin/bash|' '{}' +; \
         # Fix permissions (especially when running as non-root)
         # More information [here](https://github.com/docker-library/tomcat/issues/35)
         chmod -R +rX . ; \
-        chmod 777 tomcat/work; \
-        chmod u+x tomcat/bin/*.sh; \
+        chmod u+x "${CATALINA_HOME}/bin/*.sh"; \
         # Removal of default/unwanted Applications
-        rm -rf tomcat/webapps/* tomcat/temp/* tomcat/logs tomcat/bin/*.bat; \
+        rm -rf "${CATALINA_HOME}/webapps"/* "${CATALINA_HOME}"/{temp,work,logs} "${CATALINA_HOME}/bin"/*.bat; \
         # Create `tomcat` user
-        useradd --system --user-group --no-create-home --home-dir /app/home tomcat; \
+        groupadd --system --gid "${APP_GID}" "${APP_GROUP}"; \
+        useradd --system --group "${APP_GROUP}" --no-create-home --home-dir "${HOME_DIR}" --uid "${APP_UID}" "${APP_USER}"; \
         # Install Snowbound
-        mkdir -p home/.snowbound-docs fonts tomcat/webapps/VirtualViewerJavaHTML5 tomcat/conf/Catalina/localhost; \
-        unzip -d tomcat/webapps/VirtualViewerJavaHTML5 "$SNOWBOUND_WAR"; \
-        rm "$SNOWBOUND_WAR"; \
+        mkdir -p "${HOME_DIR}/.snowbound-docs" fonts "${CATALINA_HOME}/webapps/VirtualViewerJavaHTML5" "${CATALINA_HOME}/conf/Catalina/localhost" "${TEMP_DIR}" "${WORK_DIR}" "${LOGS_DIR}"; \
+        unzip -d "${CATALINA_HOME}/webapps/VirtualViewerJavaHTML5" "${SNOWBOUND_WAR}"; \
+        rm "${SNOWBOUND_WAR}"; \
         # Install Snowbound configuration file
         chmod 644 VirtualViewerJavaHTML5.xml; \
-        mv VirtualViewerJavaHTML5.xml tomcat/conf/Catalina/localhost/; \
+        mv VirtualViewerJavaHTML5.xml "${CATALINA_HOME}/conf/Catalina/localhost"; \
         # Setup fonts
         tar xf fonts.tar.gz -C fonts; \
         rm fonts.tar.gz; \
@@ -106,13 +121,10 @@ RUN     set -eu -o pipefail; \
         fc-cache -f -v; \
         cd ..; \
         # Fix permissions
-        chown -R tomcat:tomcat tomcat home; \
-        # Remove unwanted packages, including `yum` itself
-        yum --assumeyes erase unzip; \
-        #rpm --erase --nodeps yum yum-plugin-fastestmirror yum-plugin-ovl yum-utils; \
-        rm -rf /var/cache/yum
+        chown -R "${APP_USER}:${APP_GROUP}" "${CATALINA_HOME}" "${HOME_DIR}" \
+        chmod -R ug=rwX,o=rX "${HOME_DIR}"
 
-VOLUME /app/home/.snowbound-docs
+VOLUME [ "${HOME_DIR}" ]
 
 EXPOSE 8080
 USER tomcat
