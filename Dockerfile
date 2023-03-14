@@ -97,7 +97,7 @@ RUN     set -eu -o pipefail; \
         # Fix permissions (especially when running as non-root)
         # More information [here](https://github.com/docker-library/tomcat/issues/35)
         chmod -R +rX . ; \
-        chmod u+x "${CATALINA_HOME}/bin/*.sh"; \
+        chmod u+x "${CATALINA_HOME}/bin"/*.sh; \
         # Removal of default/unwanted Applications
         rm -rf "${CATALINA_HOME}/webapps"/* "${CATALINA_HOME}"/{temp,work,logs} "${CATALINA_HOME}/bin"/*.bat; \
         # Create `tomcat` user
