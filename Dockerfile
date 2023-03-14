@@ -113,12 +113,10 @@ RUN     set -eu -o pipefail; \
         # Setup fonts
         tar xf fonts.tar.gz -C fonts; \
         rm fonts.tar.gz; \
-        cd fonts; \
-        fc-cache -f -v; \
-        cd ..; \
+        ( cd fonts && fc-cache -f -v ) \
         # Fix permissions
-        chown -R "${APP_USER}:${APP_GROUP}" "${CATALINA_HOME}" "${HOME_DIR}" \
-        chmod -R ug=rwX,o=rX "${HOME_DIR}"
+        chown -R "${APP_USER}:${APP_GROUP}" "${CATALINA_HOME}" "${HOME_DIR}"; \
+        chmod -R ug=rwX,o=rX "${HOME_DIR}";
 
 VOLUME [ "${HOME_DIR}" ]
 
