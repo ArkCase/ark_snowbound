@@ -68,14 +68,10 @@ ENV JRE_HOME="/usr/lib/jvm/jre-11-openjdk" \
     WORK_DIR="${WORK_DIR}" \
     TEMP_DIR="${TEMP_DIR}"
 
-WORKDIR /app
+WORKDIR "${BASE_DIR}"
 ADD "${SNOWBOUND_URL}" "${TOMCAT_URL}" ./
 
-COPY files/fonts.tar.gz \
-    files/server.xml \
-    files/web.xml \
-    files/startup.sh \
-    files/VirtualViewerJavaHTML5.xml ./
+COPY files/* ./
 
 SHELL ["/bin/bash", "-c"]
 RUN     set -eu -o pipefail; \
