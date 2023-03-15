@@ -11,10 +11,3 @@ docker build -t snowbound:latest .
 
 Repository pushes occur automatically when code is checked in.
 
-## How to run: (Helm)
-
-helm repo add arkcase https://arkcase.github.io/ark_helm_charts/
-
-helm install ark-snowbound ark-snowbound
-
-helm uninstall ark-snowbound
