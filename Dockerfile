@@ -121,6 +121,6 @@ RUN     set -eu -o pipefail; \
 VOLUME [ "${HOME_DIR}" ]
 
 EXPOSE 8080
-USER tomcat
+USER "${APP_USER}"
 ENTRYPOINT ["/app/startup.sh"]
 CMD ["run"]
