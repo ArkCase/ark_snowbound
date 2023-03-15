@@ -9,4 +9,8 @@ set -euo pipefail
 
 [ ${#} -gt 0 ] || set -- "run"
 
-exec "${CATALINA_HOME}/bin/catalina.sh" -Dlogs.dir="${LOGS_DIR}" "$@"
+[ -v CATALINA_OPTS ] || CATALINA_OPTS=""
+CATALINA_OPTS+=" -Dlogs.dir='${LOGS_DIR}'"
+export CATALINA_OPTS
+
+exec "${CATALINA_HOME}/bin/catalina.sh" "$@"
