@@ -7,6 +7,6 @@ set -euo pipefail
 [ -v HOME_DIR ] || HOME_DIR="${BASE_DIR}/${APP_USER}"
 [ -v LOGS_DIR ] || LOGS_DIR="${HOME_DIR}/logs"
 
-[ ${#} -gt 1 ] || set -- "run"
+[ ${#} -gt 0 ] || set -- "run"
 
 exec "${CATALINA_HOME}/bin/catalina.sh" -Dlogs.dir="${LOGS_DIR}" "$@"
