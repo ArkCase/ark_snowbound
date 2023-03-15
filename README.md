@@ -1,15 +1,20 @@
 # Snowbound for ArkCase
 
+Snowbound is a High-Speed viewing for large files: Document rendering and processing is split between the server and browser to deliver an extremely high-speed response
+Document Viewer Connectors: Alfresco, Pega, IBM.  Advanced features and functions: Annotate, redact, split, merge and more.  Robust Thumbnail Panels: Simplify working on large documents using our full panel thumbnail display as well as the option to adjust thumbnail size.  Extensive format support: Render PDF, Word, Excel, AFP, DWG, TIFF, and more in one universal viewer.  No third-party application or additional license required.
+
+Snowbound Documentation is available at https://snowbound.com/
+
 ## How to build:
 
-docker build -t ${BASE\_REGISTRY}/arkcase/snowbound:latest .
+docker build -t snowbound:latest .
 
-docker push ${BASE\_REGISTRY}/arkcase/snowbound:latest
+Repository pushes occur automatically when code is checked in.
 
 ## How to run: (Helm)
 
-helm repo add arkcase https://arkcase.github.io/ark\_helm\_charts/
+helm repo add arkcase https://arkcase.github.io/ark_helm_charts/
 
-helm install snowbound ark-snowbound
+helm install ark-snowbound ark-snowbound
 
-helm uninstall snowbound
+helm uninstall ark-snowbound
