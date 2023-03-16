@@ -87,9 +87,7 @@ RUN     set -eu -o pipefail; \
         tar xf "${TOMCAT_TARBALL}"; \
         mv "${TOMCAT}" "${CATALINA_HOME}"; \
         rm "${TOMCAT_TARBALL}"; \
-        mv -f logging.properties "${CATALINA_HOME}/conf"; \
-        mv -f server.xml "${CATALINA_HOME}/conf"; \
-        mv -f web.xml "${CATALINA_HOME}/conf"; \
+        mv -f web.xml server.xml logging.properties catalina.properties "${CATALINA_HOME}/conf"; \
         # `/bin/sh` removes env vars it doesn't support (i.e. the ones with periods in their names)
         # More information [here](https://github.com/docker-library/tomcat/issues/77)
         # Use `/bin/bash` instead
