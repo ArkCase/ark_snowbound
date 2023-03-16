@@ -81,7 +81,7 @@ RUN     set -eu -o pipefail; \
             exit 1; \
         fi; \
         yum -y update; \
-        yum -y install java-11-openjdk unzip; \
+        yum -y install java-11-openjdk-devel unzip; \
         yum -y clean all; \
         # Unpack Tomcat into the `tomcat` directory
         tar xf "${TOMCAT_TARBALL}"; \
