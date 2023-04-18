@@ -2,8 +2,7 @@
 #
 # How to build:
 #
-# docker build -t ${BASE_REGISTRY}/arkcase/snowbound:latest .
-# docker push ${BASE_REGISTRY}/arkcase/snowbound:latest
+# docker build -t arkcase/snowbound:latest .
 #
 # How to run: (Helm)
 #
@@ -13,11 +12,11 @@
 #
 ###########################################################################################################
 
-ARG BASE_REGISTRY
+ARG PUBLIC_REGISTRY="public.ecr.aws"
 ARG BASE_REPO="arkcase/base"
 ARG BASE_TAG="8.7.0"
 
-FROM "${BASE_REGISTRY}/${BASE_REPO}:${BASE_TAG}"
+FROM "${PUBLIC_REGISTRY}/${BASE_REPO}:${BASE_TAG}"
 
 # Variables: Versions
 ARG SNOWBOUND_ARKCASE_VERSION="2021.03"
